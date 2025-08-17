@@ -1,175 +1,101 @@
 # DemoQA Performance Test Suite
 
-A comprehensive JMeter performance testing suite for the DemoQA Bookstore API, designed to test user account management and book operations under concurrent load.
+JMeter performance testing suite for the DemoQA Bookstore API, testing user account management and book operations.
 
 ## Overview
 
-This project contains JMeter test plans that simulate realistic user interactions with the DemoQA bookstore application, including user registration, authentication, book retrieval, and account management operations.
+This project contains two JMeter test plans:
+- Standard test plan with hard-coded values
+- CSV data-driven test plan for parameterized testing
 
-## Test Scenarios
+## Test Flow
 
-The test plan covers the following user workflow:
+1. User Creation → Authentication → Book Retrieval → Book Management → User Deletion
 
-1. **User Creation** - Register new users with unique usernames
-2. **User Authorization** - Authenticate users with the system
-3. **Book Retrieval** - Fetch available books from the bookstore
-4. **Book Management** - Add books to user's collection
-5. **User Cleanup** - Delete user accounts after testing
+## Test Plans
 
-## Test Configuration
+### Standard Test Plan (`DemoQA-Performance-Test-Plan.jmx`)
+- **Users**: 10 concurrent users
+- **Variables**: Username: `Mark20` (with counter), Password: `Mark#12345`
 
-### Thread Group Settings
-- **Number of Threads (Users)**: 10 concurrent users
-- **Ramp-up Period**: 0 seconds (immediate load)
-- **Loop Count**: 1 iteration per user
+### CSV-Driven Test Plan (`DemoQA-Performance-Test-Plan-CSV.jmx`)
+- **Users**: 5 concurrent users
+- **Data Source**: `data.csv` (comma-delimited)
+- **Format**: `username,password` (one user per line)
 
-### User Variables
-- **Username**: `Mark20` (with counter for uniqueness)
-- **Password**: `Mark#12345`
-
-### API Endpoints Tested
-- `POST /Account/v1/User` - User registration
-- `POST /Account/v1/Authorized` - User authentication
-- `GET /BookStore/v1/Books` - Retrieve book catalog
-- `POST /BookStore/v1/Books` - Add books to user collection
-- `DELETE /Account/v1/User/{userID}` - Delete user account
+## API Endpoints
+- User registration: `POST /Account/v1/User` 
+- Authentication: `POST /Account/v1/Authorized`
+- Get books: `GET /BookStore/v1/Books`
+- Add books: `POST /BookStore/v1/Books`
+- Delete user: `DELETE /Account/v1/User/{userID}`
 
 ## Prerequisites
 
-- **Apache JMeter 5.4.2** or higher
-- Java 8 or higher
-- Internet connection (tests run against live DemoQA API)
+- Apache JMeter 5.4.2+
+- Java 8+
 
-## Installation & Setup
+## Quick Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd jmeter-performance
-   ```
+```bash
+# Install JMeter on macOS
+brew install jmeter
 
-2. **Install JMeter** (if not already installed)
-   ```bash
-   # Using Homebrew (macOS)
-   brew install jmeter
-   
-   # Or download from Apache JMeter official website
-   # https://jmeter.apache.org/download_jmeter.cgi
-   ```
-
-3. **Verify JMeter installation**
-   ```bash
-   jmeter --version
-   ```
-
-## Running the Tests
-
-### GUI Mode 
-
-1. **Navigate to Apache JMeter installation directory**
-   ```bash
-   cd /path/to/apache-jmeter/bin
-   ```
-
-2. **Launch JMeter GUI**
-   ```bash
-   ./jmeter
-   ```
-
-3. **Open the test plan**
-   - In the JMeter GUI, go to File → Open
-   - Navigate to and select `DemoQA-Performance-Test-Plan.jmx`
-
-Alternatively, you can open the test plan directly from command line:
-
-## Test Results & Reports
-
-The test plan includes built-in listeners:
-- **View Results Tree** - Detailed request/response data
-- **Summary Report** - Aggregated performance metrics
-
-### Key Performance Metrics
-- Response times (min, max, average)
-- Throughput (requests per second)
-- Error percentage
-- 90th/95th/99th percentile response times
-
-## Test Plan Components
-
-### HTTP Samplers
-- **Create User**: POST request with JSON payload
-- **Authorize User**: Authentication endpoint
-- **Get Books**: Retrieve book catalog
-- **Add Books**: Add specific books to user collection
-- **Delete User**: Cleanup user account
-
-### Assertions
-- HTTP response code validation (200, 201, 204)
-- Response content verification
-
-### Processors
-- **JSR223 PostProcessor**: Extract userID from create user response
-- **Counter Function**: Generate unique usernames
-
-### Headers
-- `Accept: */*`
-- `Content-Type: application/json`
-- `Cache-control: application/json`
-
-## Customization
-
-### Modifying Load Parameters
-Edit the Thread Group properties in the JMX file:
-```xml
-<stringProp name="ThreadGroup.num_threads">10</stringProp>    <!-- Number of users -->
-<stringProp name="ThreadGroup.ramp_time">0</stringProp>      <!-- Ramp-up time -->
-<stringProp name="LoopController.loops">1</stringProp>       <!-- Loop count -->
+# Or download from https://jmeter.apache.org/download_jmeter.cgi
 ```
 
-### Updating Test Data
-Modify user credentials in the Test Plan variables:
-```xml
-<stringProp name="Argument.value">Mark20</stringProp>        <!-- Username -->
-<stringProp name="Argument.value">Mark#12345</stringProp>    <!-- Password -->
+## Running Tests
+
+### GUI Mode
+```bash
+jmeter
+# Open either test plan via File → Open
 ```
 
-### Adding New Test Steps
-1. Right-click on Thread Group
-2. Add → Sampler → HTTP Request
-3. Configure endpoint details
-4. Add assertions and processors as needed
+### Command Line Mode
+```bash
+# Standard test plan
+jmeter -n -t DemoQA-Performance-Test-Plan.jmx -l results.jtl
 
-## Troubleshooting
+# CSV test plan
+jmeter -n -t DemoQA-Performance-Test-Plan-CSV.jmx -l csv_results.jtl
+```
 
-### Common Issues
-1. **Connection timeouts**: Check internet connectivity and DemoQA service status
-2. **Authentication failures**: Verify username/password combination
-3. **Rate limiting**: Reduce thread count if getting 429 responses
+Note: Ensure `data.csv` is in the same directory when running the CSV test plan.
 
-### Debug Mode
-Run with GUI mode and enable "View Results Tree" to inspect:
-- Request headers and body
-- Response data
-- Assertion results
+## Output & Metrics
 
-## Best Practices
+Test plans include listeners for:
+- Detailed request/response data (View Results Tree)
+- Aggregated metrics (Summary Report)
 
-1. **Always run performance tests in non-GUI mode** for accurate results
-2. **Use meaningful test data** that represents real user scenarios  
-3. **Monitor system resources** during test execution
-4. **Set appropriate timeouts** for network operations
-5. **Clean up test data** after test completion
+Key metrics: response times, throughput, error rates
 
-## License
+## Customizing Tests
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+To modify thread count or credentials:
+1. Open the JMX file in JMeter
+2. Adjust Thread Group properties (users, ramp-up, loops)
+3. Modify user variables or update the CSV file
+
+## CI Integration
+
+This project uses GitHub Actions for continuous integration:
+
+- Workflow file: `.github/workflows/jmeter-performance-tests.yml`
+- Trigger: Push to main, pull requests, or manual trigger
+- Process:
+  1. Sets up Java 17
+  2. Downloads JMeter
+  3. Runs both test plans
+  4. Uploads results as artifacts
+
+Results are available in GitHub Actions as:
+- `standard_results.jtl` and `csv_results.jtl`
+- `jmeter_standard.log` and `jmeter_csv.log`
 
 ## References
 
 - [Apache JMeter Documentation](https://jmeter.apache.org/usermanual/index.html)
 - [DemoQA API Documentation](https://demoqa.com/)
-- [JMeter Best Practices](https://jmeter.apache.org/usermanual/best-practices.html)
 
----
-
-**Note**: This test suite is designed for educational and testing purposes. Ensure you have proper authorization before running performance tests against any production systems.
