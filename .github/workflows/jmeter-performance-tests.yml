@@ -1,0 +1,44 @@
+name: JMeter Performance Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    # Manual trigger option
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JRE 8
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'adopt'
+        java-version: '8'
+    
+    - name: Install JMeter
+      run: |
+        wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.4.3.tgz
+        tar -xzf apache-jmeter-5.4.3.tgz
+        
+    - name: Run Standard Test Plan
+      run: |
+        ./apache-jmeter-5.4.3/bin/jmeter -n -t DemoQA-Performance-Test-Plan.jmx -l standard_test_results.jtl -e -o standard_test_report
+      
+    - name: Run CSV Test Plan
+      run: |
+        ./apache-jmeter-5.4.3/bin/jmeter -n -t DemoQA-Performance-Test-Plan-CSV.jmx -l csv_test_results.jtl -e -o csv_test_report
+    
+    - name: Archive Test Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: jmeter-test-results
+        path: |
+          *.jtl
+          standard_test_report
+          csv_test_report
